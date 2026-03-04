@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import Sidebar from "./components/Sidebar";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,6 +30,21 @@ export default function RootLayout({ children }) {
   const [open, setOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+  const pathname = usePathname(); // ✅ must be inside component
+
+  // ✅ define getPageTitle inside component so it can access pathname
+  const getPageTitle = () => {
+    if (pathname === "/") return "Dashboard";
+    if (pathname === "/inventory") return "Inventory";
+    if (pathname === "/payments") return "Payments";
+    if (pathname === "/reports") return "Reports";
+    if (pathname === "/settings") return "Settings";
+    return "Dashboard";
+  };
+
+  const title = getPageTitle(); // compute title
+
+
   return (
     <html lang="en">
       <body
@@ -45,7 +61,7 @@ export default function RootLayout({ children }) {
               <button onClick={() => setOpen(true)}>
                 <Menu />
               </button>
-              <h1 className="font-bold">Dashboard</h1>
+              <h1 className="font-bold">{title}</h1>
               <Bell />
             </div>
 

@@ -32,7 +32,7 @@ export default function Sidebar({ open, setOpen }) {
         </div>
 
         <nav className="space-y-4">
-          <Link href="/"><NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={pathname === "/"}
+          <Link href="/"><NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={pathname === "/"} onClick={() => setOpen(false)}
           /></Link>
           <Link href="/inventory"><NavItem icon={<Package size={18} />} label="Inventory" active={pathname === "/inventory"} onClick={() => setOpen(false)} /></Link>
           <Link href="/payments"><NavItem icon={<CreditCard size={18} />} label="Payments" active={pathname === "/payments"} onClick={() => setOpen(false)} /></Link>
