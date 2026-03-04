@@ -9,6 +9,7 @@ import {
     Download,
     ChevronDown,
 } from "lucide-react";
+import BigTable from "../components/BigTable";
 
 export default function Home() {
 
@@ -53,6 +54,8 @@ export default function Home() {
                 <StatCard title="Outstanding" value="GHS 2,500" sub="2 pending" />
             </div>
             <DashboardTabs />
+            {/* <BigTable className="mb-4" /> */}
+
         </div>
     );
 }

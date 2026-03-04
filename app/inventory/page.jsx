@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 
 import StatCard from "../components/StatCard";
+import BigTable from "../components/BigTable";
+import Charts from "../components/Charts";
 
 const data = [
     {
@@ -144,6 +146,8 @@ export default function Home() {
                 </div>
             </div>
             {/* </div> */}
+
+            <Charts title={`Stock Trend`} secondTitle={`By Type`} />
 
         </div>
     );

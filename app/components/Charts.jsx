@@ -19,12 +19,12 @@ const trendData = [
   { day: "Sep 14", value: 520 },
 ];
 
-export default function Charts() {
+export default function Charts({ title, secondTitle }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Inventory Trend */}
       <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
-        <h3 className="font-semibold mb-4">Inventory Trend</h3>
+        <h3 className="font-semibold mb-4">{title}</h3>
 
         <div className="w-full h-64">
           <ResponsiveContainer>
@@ -46,7 +46,7 @@ export default function Charts() {
       {/* Payment Circle Placeholder */}
       <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col">
         <h3 className="font-semibold mb-4 text-left">
-          Payment Distribution
+          {secondTitle}
         </h3>
 
         <div className="flex justify-center items-center">

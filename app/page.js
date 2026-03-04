@@ -64,7 +64,7 @@ export default function Home() {
 
       {/* Tables + Charts */}
       <BigTable className="mb-4" />
-      <Charts />
+      <Charts title={`Inventory Trends`} secondTitle={`Payment Distribution`} />
       <div className="border border-gray-300 rounded-lg p-4 mt-4 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <p className="text-base font-medium">
