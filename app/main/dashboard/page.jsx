@@ -31,8 +31,31 @@ export default function Home() {
     }, [status, router]);
 
     // if (status === "loading") return <p>Loading...</p>;
-    if (status === "loading") return <p>Loading...</p>;
+    if (status === "loading") {
+        return (
+            <>
+                {/* Shimmer for top section */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-6 animate-pulse">
+                    <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-3 mb-6">
+                        <div className="hidden sm:block w-full h-20 bg-gray-200 rounded-md"></div>
 
+                        <div className="flex gap-3">
+                            <div className="w-32 h-10 bg-gray-200 rounded-lg"></div>
+                            <div className="w-32 h-10 bg-gray-200 rounded-lg"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Shimmer for stat cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+                    <div className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+                    <div className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+                    <div className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>

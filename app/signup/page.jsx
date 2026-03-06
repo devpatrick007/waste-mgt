@@ -49,19 +49,20 @@ export default function SignUpForm() {
                 setLoading(false);
                 return;
             }
+            alert("Registration successful! Please log in.");
+            window.location.href = "/login";
+            // const result = await signIn("credentials", {
+            //     redirect: false,
+            //     email: formData.email,
+            //     password: formData.password,
+            // });
 
-            const result = await signIn("credentials", {
-                redirect: false,
-                email: formData.email,
-                password: formData.password,
-            });
-
-            if (result.error) {
-                setError(result.error);
-                setLoading(false);
-            } else {
-                router.push("/dashboard");
-            }
+            // if (result.error) {
+            //     setError(result.error);
+            //     setLoading(false);
+            // } else {
+            //     router.push("/dashboard");
+            // }
         } catch (err) {
             setError("Something went wrong");
             setLoading(false);
