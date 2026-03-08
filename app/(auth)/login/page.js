@@ -61,7 +61,7 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-black">
             <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8 space-y-6">
                 {/* Logo */}
-                <h1 className="text-4xl font-bold text-center text-green-600">♻ WasteRecycle</h1>
+                <h1 className="text-4xl font-bold text-center text-green-600">♻</h1>
 
                 {/* Subtitle */}
                 <p className="text-center text-black/70">Login to your account</p>

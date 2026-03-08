@@ -10,7 +10,7 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import { usePathname } from "next/navigation";
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider, signOut, useSession } from "next-auth/react";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -129,20 +129,23 @@ export default function MainLayout({ children }) {
     );
 }
 
+
 // Profile Dropdown Modal
-function ProfileDropdown({ isPOpen, setIsPOpen, user }) {
+function ProfileDropdown({ isPOpen, setIsPOpen, user, onLogout }) {
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             {/* Overlay */}
             <div
-                className="absolute inset-0 bg-black/50"
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                 onClick={() => setIsPOpen(false)}
             ></div>
 
             {/* Modal Content */}
-            <div className="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-xl p-6 z-50 animate-fadeIn">
+            <div className="relative bg-white w-full max-w-md rounded-2xl shadow-xl p-6 z-50 animate-fadeIn overflow-y-auto max-h-[90vh]">
+
                 {/* Header */}
                 <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold text-gray-800">Profile</h2>
                     <button
                         onClick={() => setIsPOpen(false)}
                         className="text-gray-500 hover:text-gray-700 text-xl"
@@ -154,9 +157,13 @@ function ProfileDropdown({ isPOpen, setIsPOpen, user }) {
                 {/* Profile Info */}
                 <div className="flex flex-col items-center text-center">
                     <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center text-2xl font-semibold text-gray-700">
-
+                        {user?.name?.charAt(0) || "U"}
                     </div>
-                    <h2 className="mt-4 text-xl font-semibold text-gray-800">{user?.name || "N/A"}</h2>
+
+                    <h2 className="mt-4 text-xl font-semibold text-gray-800">
+                        {user?.name || "N/A"}
+                    </h2>
+
                     <span className="mt-2 px-3 py-1 text-sm font-medium bg-green-100 text-green-700 rounded-full">
                         Active Collector
                     </span>
@@ -178,26 +185,38 @@ function ProfileDropdown({ isPOpen, setIsPOpen, user }) {
                     </div>
                 </div>
 
-                {/* Contact Info */}
-                <div className="mt-6">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Contact Information</h3>
-                    <div className="flex items-center text-sm text-gray-600 mb-2">
-                        📞 +233 24 987 6543
+                <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 text-center mt-4">
+                    <div className="flex items-center gap-1">
+                        📞 <span>+233 24 987 6543</span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                        📍 Kwashieman - Zone 4
+
+                    <div className="flex items-center gap-1">
+                        📍 <span>Kwashieman - Zone 4</span>
                     </div>
                 </div>
 
                 {/* Recent Inputs */}
                 <div className="mt-6">
-                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Recent Inputs</h3>
-                    {["12.5 kg - Feb 11, 2025", "12.5 kg - Feb 11, 2025", "12.5 kg - Feb 11, 2025"].map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center mb-4 last:mb-0">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">
+                        Recent Inputs
+                    </h3>
+
+                    {[
+                        "12.5 kg - Feb 11, 2025",
+                        "12.5 kg - Feb 11, 2025",
+                        "12.5 kg - Feb 11, 2025",
+                    ].map((item, idx) => (
+                        <div
+                            key={idx}
+                            className="flex justify-between items-center mb-4 last:mb-0"
+                        >
                             <div>
-                                <p className="text-sm font-medium text-gray-800">PET Plastics</p>
+                                <p className="text-sm font-medium text-gray-800">
+                                    PET Plastics
+                                </p>
                                 <p className="text-xs text-gray-500">{item}</p>
                             </div>
+
                             <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-600 rounded-full">
                                 Verified
                             </span>
@@ -205,9 +224,14 @@ function ProfileDropdown({ isPOpen, setIsPOpen, user }) {
                     ))}
                 </div>
 
-                <div className="mt-6 border-t pt-4 text-center">
-                    <button className="text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center justify-center gap-2 mx-auto">
-                        View Full History →
+
+                {/* Logout Section */}
+                <div className="mt-6 border-t pt-4">
+                    <button
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 rounded-lg transition"
+                    >
+                        Logout
                     </button>
                 </div>
             </div>

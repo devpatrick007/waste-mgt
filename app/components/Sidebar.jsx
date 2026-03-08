@@ -32,12 +32,12 @@ export default function Sidebar({ open, setOpen }) {
         </div>
 
         <nav className="space-y-4">
-          <Link href="/"><NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={pathname === "/"} onClick={() => setOpen(false)}
+          <Link href="/main/dashboard"><NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={pathname === "/main/dashboard"} onClick={() => setOpen(false)}
           /></Link>
-          <Link href="/main/inventory"><NavItem icon={<Package size={18} />} label="Inventory" active={pathname === "/inventory"} onClick={() => setOpen(false)} /></Link>
-          <Link href="/payments"><NavItem icon={<CreditCard size={18} />} label="Payments" active={pathname === "/payments"} onClick={() => setOpen(false)} /></Link>
-          <Link href="/reports"><NavItem icon={<NotebookPen size={18} />} label="Reports" active={pathname === "/reports"} onClick={() => setOpen(false)} /></Link>
-          <Link href="/settings"><NavItem icon={<Settings size={18} />} label="Settings" active={pathname === "/settings"} onClick={() => setOpen(false)} /></Link>
+          <Link href="/main/inventory"><NavItem icon={<Package size={18} />} label="Inventory" active={pathname === "/main/inventory"} onClick={() => setOpen(false)} /></Link>
+          <Link href="/main/payments"><NavItem icon={<CreditCard size={18} />} label="Payments" active={pathname === "/main/payments"} onClick={() => setOpen(false)} /></Link>
+          <Link href="/main/reports"><NavItem icon={<NotebookPen size={18} />} label="Reports" active={pathname === "/main/reports"} onClick={() => setOpen(false)} /></Link>
+          <Link href="/main/settings"><NavItem icon={<Settings size={18} />} label="Settings" active={pathname === "/main/settings"} onClick={() => setOpen(false)} /></Link>
         </nav>
       </aside>
     </>

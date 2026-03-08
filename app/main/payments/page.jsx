@@ -1,5 +1,5 @@
-import StatCard from "../components/StatCard";
-import DashboardTabs from "../components/DashboardTabs";
+import StatCard from "../../components/StatCard";
+import DashboardTabs from "../../components/DashboardTabs";
 
 import {
     Menu,
@@ -9,7 +9,7 @@ import {
     Download,
     ChevronDown,
 } from "lucide-react";
-import BigTable from "../components/BigTable";
+import BigTable from "../../components/BigTable";
 
 export default function Home() {
 
