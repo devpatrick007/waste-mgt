@@ -138,8 +138,8 @@ export default function BigTable({ data }) {
     try {
       // Convert numeric fields before sending
       const payload = {
-        collectorName: "ABCDEF",
-        collectorId: formData.collectorId,
+        collectorName: formData.collectorName,
+        collectorId: "ABCDEF",
         wasteTypeId: Number(formData.wasteType), // convert string to number
         weight: parseFloat(formData.weight),     // convert string to number
         date: formData.date,
