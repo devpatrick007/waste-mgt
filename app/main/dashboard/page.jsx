@@ -65,9 +65,11 @@ export default function Home() {
                 if (!res.ok) {
                     throw new Error(`HTTP error! status: ${res.status}`);
                 }
-
                 const data = await res.json();
-                setInventory(data);
+                const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                setInventory(sortedData);
+                // const data = await res.json();
+                // setInventory(data);
             } catch (err) {
                 if (err.name !== "AbortError") {
                     setError(err.message);
@@ -117,7 +119,7 @@ export default function Home() {
             </>
         );
     }
- 
+
     return (
         <>
             {/* Actions */}

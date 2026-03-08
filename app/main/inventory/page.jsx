@@ -7,9 +7,9 @@ import {
     ChevronDown,
 } from "lucide-react";
 
-import StatCard from "../components/StatCard";
-import BigTable from "../components/BigTable";
-import Charts from "../components/Charts";
+import StatCard from "../../components/StatCard";
+import BigTable from "../../components/BigTable";
+import Charts from "../../components/Charts";
 
 const data = [
     {

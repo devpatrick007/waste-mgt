@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { X } from "lucide-react";
+import Link from 'next/link';
 
 
 const inputs = [
@@ -325,7 +326,7 @@ export default function BigTable({ data }) {
           {/* Footer Link */}
           <div className="mt-6 text-right">
             <button className="text-green-600 cursor-pointer hover:underline text-sm font-medium">
-              View all inputs →
+              <Link href="/main/inventory">View all inputs →</Link>
             </button>
           </div>
         </div>
