@@ -104,7 +104,7 @@ export default function MainLayout({ children }) {
                                         alt="User"
                                         className="w-8 h-8 rounded-full object-cover"
                                     />
-                                    <span className="text-sm font-medium">Dean</span>
+                                    <span className="text-sm font-medium">{session?.user?.name || "User"}</span>
                                     <ChevronDown size={16} />
                                 </button>
                             </div>
