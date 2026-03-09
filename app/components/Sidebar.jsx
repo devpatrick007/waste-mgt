@@ -43,7 +43,7 @@ export default function Sidebar({ open, setOpen }) {
     </>
   );
 }
-
+//todo
 function NavItem({ icon, label, active, onClick }) {
   return (
     <div
