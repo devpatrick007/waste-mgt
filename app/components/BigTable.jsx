@@ -22,7 +22,6 @@ export default function BigTable({ data }) {
   const [wasteTypes, setWasteTypes] = useState([]);
   const [paymentTypes, setPaymentTypes] = useState([]);
   const [paymentList, setPaymentList] = useState([])
-
   const [openPayModal, setOpenPayModal] = useState(false);
 
   const [loading, setLoading] = useState(true);
@@ -229,7 +228,9 @@ export default function BigTable({ data }) {
 
 
         setPaymentList(data);
-
+        const total = getTotalAmount(payments);
+        console.log(total);
+        setTotalAmount(total)
       } catch (err) {
         if (err.name !== "AbortError") {
           setError(err.message);
@@ -246,8 +247,7 @@ export default function BigTable({ data }) {
     return () => controller.abort();
   }, []);
 
-
-
+ 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
       <div className="lg:col-span-2 bg-white rounded-xl shadow-sm">

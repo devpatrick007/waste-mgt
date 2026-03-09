@@ -17,6 +17,7 @@ export default function Home() {
     const [inventory, setInventory] = useState([]);
     const [totalTonnes, setTotalTonnes] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [totalAmount, setTotalAmount] = useState(0)
 
     const [error, setError] = useState("");
     const [open, setOpen] = useState(false);
@@ -85,6 +86,49 @@ export default function Home() {
         }
     }, [inventory]);
 
+    useEffect(() => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
+        const fetchPayment = async () => {
+            try {
+                const res = await fetch(
+                    "https://pellakes-backend.prospafin.com/api/payments",
+                    { signal }
+                );
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                const data = await res.json();
+                console.log("Raw data from Payment API:", data);
+
+
+                //setPaymentList(data);
+                const total = getTotalAmount(data);
+                console.log("total amount", total);
+                setTotalAmount(total)
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    setError(err.message);
+                    console.error("Error fetching inventory:", err);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchPayment();
+
+        // Cleanup if component unmounts
+        return () => controller.abort();
+    }, []);
+
+    function getTotalAmount(payments) {
+        return payments.reduce((total, item) => total + Number(item.amount), 0);
+    }
+
+
     return (
         <div>
 
@@ -111,7 +155,7 @@ export default function Home() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
                     title="Plastics Received"
                     value={totalTonnes.toFixed(2) + " tonnes"}
@@ -123,6 +167,20 @@ export default function Home() {
                     sub="PET, HDPE"
                 />
                 <StatCard title="Total Payments" value="GHS 45,000" sub="All time" />
+                <StatCard title="Outstanding" value="GHS 2,500" sub="2 pending" />
+            </div> */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <StatCard
+                    title="Plastics Received"
+                    value={totalTonnes.toFixed(2) + " tonnes"}
+                    sub="This month"
+                />
+                <StatCard
+                    title="Current Inventory"
+                    value={totalTonnes.toFixed(2) + " tonnes"}
+                    sub="PET, HDPE"
+                />
+                <StatCard title="Total Payments" value={"GHC" + totalAmount} sub="All time" />
                 <StatCard title="Outstanding" value="GHS 2,500" sub="2 pending" />
             </div>
             <DashboardTabs />
