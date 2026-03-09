@@ -5,87 +5,23 @@ import { X } from "lucide-react";
 import Link from 'next/link';
 
 
-const inputs = [
-  {
-    name: "Kwame",
-    type: "PET",
-    weight: 420,
-    date: "2025-09-11",
-    status: "Outstanding",
-  },
-  {
-    name: "Ama",
-    type: "Sachet",
-    weight: 120,
-    date: "2025-09-11",
-    status: "Paid",
-  },
-  {
-    name: "Yaw",
-    type: "HDPE",
-    weight: 80,
-    date: "2025-09-11",
-    status: "Paid",
-  },
-  {
-    name: "Akosua",
-    type: "PET",
-    weight: 220,
-    date: "2025-09-11",
-    status: "Paid",
-  },
-  {
-    name: "Kojo",
-    type: "Sachet",
-    weight: 65,
-    date: "2025-09-11",
-    status: "Rejected",
-  },
-];
-
-const others = [
-  {
-    name: "Kwame",
-    type: "PET",
-    weight: 420,
-    date: "2025-09-11",
-    status: "Outstanding",
-  },
-  {
-    name: "Ama",
-    type: "Sachet",
-    weight: 120,
-    date: "2025-09-11",
-    status: "Paid",
-  },
-  {
-    name: "Yaw",
-    type: "HDPE",
-    weight: 80,
-    date: "2025-09-11",
-    status: "Paid",
-  },
-  {
-    name: "Peter",
-    type: "PET",
-    weight: 420,
-    date: "2025-09-11",
-    status: "Outstanding",
-  },
-
-];
-
 const statusStyles = {
-  Paid: "bg-green-100 text-green-700",
-  Outstanding: "bg-yellow-100 text-yellow-700",
-  Rejected: "bg-red-100 text-red-700",
+  Success: "bg-green-100 text-green-700 ring-1 ring-green-200",
+  Pending: "bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200",
+  Failed: "bg-red-100 text-red-700 ring-1 ring-red-200",
 };
+
+// const statusStyles = {
+//   Paid: "bg-green-100 text-green-700",
+//   Outstanding: "bg-yellow-100 text-yellow-700",
+//   Rejected: "bg-red-100 text-red-700",
+// };
 
 export default function BigTable({ data }) {
   const [isNewRecordOpen, setNewRecordIsOpen] = useState(false);
   const [wasteTypes, setWasteTypes] = useState([]);
   const [paymentTypes, setPaymentTypes] = useState([]);
-
+  const [paymentList, setPaymentList] = useState([])
 
   const [openPayModal, setOpenPayModal] = useState(false);
 
@@ -225,11 +161,6 @@ export default function BigTable({ data }) {
     setPaymentFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // const doMakePayment = async (e) => {
-  //   e.preventDefault();
-  //   setOpenPayModal(false);
-  //   console.log("Payment Form Data:", paymentFormData);
-  // }
 
   const doMakePayment = async (e) => {
     e.preventDefault();
@@ -262,7 +193,11 @@ export default function BigTable({ data }) {
       const data = await response.json();
 
       if (response.ok) {
+        alert("Payment successful");
+
         console.log("Payment successful:", data);
+        window.location.href = "/"
+
         // optionally show success notification here
       } else {
         console.error("Payment failed:", data);
@@ -275,6 +210,41 @@ export default function BigTable({ data }) {
   };
 
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchPayment = async () => {
+      try {
+        const res = await fetch(
+          "https://pellakes-backend.prospafin.com/api/payments",
+          { signal }
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        console.log("Raw data from Payment API:", data);
+
+
+        setPaymentList(data);
+
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError(err.message);
+          console.error("Error fetching inventory:", err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPayment();
+
+    // Cleanup if component unmounts
+    return () => controller.abort();
+  }, []);
 
 
 
@@ -494,20 +464,26 @@ export default function BigTable({ data }) {
             </thead> */}
 
             <tbody className="divide-y divide-gray-100">
-              {others.map((item, index) => (
-                <tr key={index} className="hover:bg-gray-50 transition">
+              {paymentList.map((item, index) => (
+                <tr key={item.id} className="hover:bg-gray-50 transition">
                   <td className="px-6 py-4 font-medium text-gray-800">
-                    <strong> {item.name}</strong>
+                    <strong> {item.paymentMethodName}</strong>
                     <br />
                     {item.date}
                   </td>
 
                   <td className="px-6 py-4">
-                    <strong>{`GHC 230.00 `}</strong><br />
-                    <span
+                    <strong>{item.amount}</strong><br />
+                    {/* <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyles[item.status]}`}
                     >
-                      {item.status}
+                      {item.status || 'success'}
+                    </span> */}
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold 
+  ${statusStyles[item.status || "Success"]}`}
+                    >
+                      {item.status || "Success"}
                     </span>
                   </td>
                 </tr>
@@ -518,8 +494,8 @@ export default function BigTable({ data }) {
 
         {/* Mobile Cards */}
         <div className="md:hidden divide-y divide-gray-100">
-          {others.map((item, index) => (
-            <div key={index} className="p-5 space-y-3">
+          {paymentList.map((item, index) => (
+            <div key={item.id} className="p-5 space-y-3">
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-500">Collector</p>
                 <span
@@ -538,7 +514,7 @@ export default function BigTable({ data }) {
 
         <div className="mt-6 text-right">
           <button className="text-green-600 cursor-pointer hover:underline text-sm font-medium">
-            View all payments →
+            <Link href={`/main/payments`}>View all payments →</Link>
           </button>
         </div>
 

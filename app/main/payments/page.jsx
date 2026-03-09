@@ -1,3 +1,4 @@
+'use client'
 import StatCard from "../../components/StatCard";
 import DashboardTabs from "../../components/DashboardTabs";
 
@@ -10,8 +11,79 @@ import {
     ChevronDown,
 } from "lucide-react";
 import BigTable from "../../components/BigTable";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+    const [inventory, setInventory] = useState([]);
+    const [totalTonnes, setTotalTonnes] = useState(0);
+    const [loading, setLoading] = useState(false);
+
+    const [error, setError] = useState("");
+    const [open, setOpen] = useState(false);
+    useEffect(() => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
+        const fetchInventory = async () => {
+            try {
+                const res = await fetch(
+                    "https://pellakes-backend.prospafin.com/api/inventory",
+                    { signal }
+                );
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                const data = await res.json();
+                console.log("Raw data from API:", data);
+
+                const sortedData = [...data].sort((a, b) =>
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                console.log("Sorted data:", sortedData);
+
+                setInventory(sortedData);
+
+                const result = calculateTotalTonnes(sortedData);
+
+                console.log("weight in kg", result.totalKg);
+                console.log("weight in tonnes", result.totalTonnes);
+
+                setTotalTonnes(result.totalTonnes);
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    setError(err.message);
+                    console.error("Error fetching inventory:", err);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInventory();
+
+        // Cleanup if component unmounts
+        return () => controller.abort();
+    }, []);
+
+    function calculateTotalTonnes(data) {
+        const totalKg = data.reduce((sum, item) => sum + item.weight, 0);
+        const totalTonnes = totalKg / 1000;
+
+        return {
+            totalKg,
+            totalTonnes
+        };
+    }
+
+    useEffect(() => {
+        if (inventory.length > 0) {
+            const result = calculateTotalTonnes(inventory);
+
+            console.log("weight in kg", result.totalKg);
+            console.log("weight in tonnes", result.totalTonnes);
+        }
+    }, [inventory]);
 
     return (
         <div>
@@ -42,12 +114,12 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
                     title="Plastics Received"
-                    value="3.2 tonnes"
+                    value={totalTonnes.toFixed(2) + " tonnes"}
                     sub="This month"
                 />
                 <StatCard
                     title="Current Inventory"
-                    value="5.8 tonnes"
+                    value={totalTonnes.toFixed(2) + " tonnes"}
                     sub="PET, HDPE"
                 />
                 <StatCard title="Total Payments" value="GHS 45,000" sub="All time" />
