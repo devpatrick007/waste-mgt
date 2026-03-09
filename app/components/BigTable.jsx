@@ -473,7 +473,7 @@ export default function BigTable({ data }) {
                   </td>
 
                   <td className="px-6 py-4">
-                    <strong>{item.amount}</strong><br />
+                    <strong>{"GHC" + " " + item.amount}</strong><br />
                     {/* <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusStyles[item.status]}`}
                     >
