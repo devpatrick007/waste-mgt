@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 
 export default function Home() {
     const [inventory, setInventory] = useState([]);
-
+    const [totalTonnes, setTotalTonnes] = useState(0);
     const [loading, setLoading] = useState(false);
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -66,13 +66,25 @@ export default function Home() {
                     throw new Error(`HTTP error! status: ${res.status}`);
                 }
                 const data = await res.json();
-                const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                console.log("Raw data from API:", data);
+
+                const sortedData = [...data].sort((a, b) =>
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                console.log("Sorted data:", sortedData);
+
                 setInventory(sortedData);
-                // const data = await res.json();
-                // setInventory(data);
+
+                const result = calculateTotalTonnes(sortedData);
+
+                console.log("weight in kg", result.totalKg);
+                console.log("weight in tonnes", result.totalTonnes);
+
+                setTotalTonnes(result.totalTonnes);
             } catch (err) {
                 if (err.name !== "AbortError") {
                     setError(err.message);
+                    console.error("Error fetching inventory:", err);
                 }
             } finally {
                 setLoading(false);
@@ -85,6 +97,24 @@ export default function Home() {
         return () => controller.abort();
     }, []);
 
+    function calculateTotalTonnes(data) {
+        const totalKg = data.reduce((sum, item) => sum + item.weight, 0);
+        const totalTonnes = totalKg / 1000;
+
+        return {
+            totalKg,
+            totalTonnes
+        };
+    }
+
+    useEffect(() => {
+        if (inventory.length > 0) {
+            const result = calculateTotalTonnes(inventory);
+
+            console.log("weight in kg", result.totalKg);
+            console.log("weight in tonnes", result.totalTonnes);
+        }
+    }, [inventory]);
 
 
     useEffect(() => {
@@ -151,12 +181,12 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
                     title="Plastics Received"
-                    value="3.2 tonnes"
+                    value={totalTonnes.toFixed(2) + " tonnes"}
                     sub="This month"
                 />
                 <StatCard
                     title="Current Inventory"
-                    value="5.8 tonnes"
+                    value={totalTonnes.toFixed(2) + " tonnes"}
                     sub="PET, HDPE"
                 />
                 <StatCard title="Total Payments" value="GHS 45,000" sub="All time" />
@@ -169,7 +199,7 @@ export default function Home() {
             <div className="border border-gray-300 rounded-lg p-4 mt-4 mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <p className="text-base font-medium">
-                        You have recycled <b className="text-green-600">12.5 tonnes</b> of plastic this year
+                        You have recycled <b className="text-green-600">{totalTonnes.toFixed(2)}</b> of plastic this year
                     </p>
 
                     <button className="cursor-pointer bg-white border border-gray-300 px-5 py-2 rounded-lg text-sm text-black hover:bg-gray-50 transition-colors whitespace-nowrap">

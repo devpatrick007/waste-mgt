@@ -84,6 +84,10 @@ const statusStyles = {
 export default function BigTable({ data }) {
   const [isNewRecordOpen, setNewRecordIsOpen] = useState(false);
   const [wasteTypes, setWasteTypes] = useState([]);
+  const [paymentTypes, setPaymentTypes] = useState([]);
+
+
+  const [openPayModal, setOpenPayModal] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -108,6 +112,30 @@ export default function BigTable({ data }) {
     };
 
     fetchWasteTypes();
+  }, []);
+
+
+  useEffect(() => {
+    const fetchPaymentTypes = async () => {
+      try {
+        const res = await fetch(
+          "https://pellakes-backend.prospafin.com/api/payment-methods"
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setPaymentTypes(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPaymentTypes();
   }, []);
 
 
@@ -183,6 +211,69 @@ export default function BigTable({ data }) {
     }
   };
 
+  const [paymentFormData, setPaymentFormData] = useState({
+    "amount": "",
+    "paymentMethodId": "",
+    "date": "",
+    "notes": ""
+  });
+
+  paymentFormData.collectorId = "PAY-202"; // default or auto-fill if needed
+
+  const handlePaymentChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // const doMakePayment = async (e) => {
+  //   e.preventDefault();
+  //   setOpenPayModal(false);
+  //   console.log("Payment Form Data:", paymentFormData);
+  // }
+
+  const doMakePayment = async (e) => {
+    e.preventDefault();
+    setOpenPayModal(false);
+    console.log("Payment Form Data:", paymentFormData);
+
+    try {
+
+      const paymentPayload = {
+        collectorId: paymentFormData.collectorId,
+        amount: parseFloat(paymentFormData.amount),
+        paymentMethodId: parseInt(paymentFormData.paymentMethodId), // convert string to number
+        date: paymentFormData.date,
+        notes: paymentFormData.notes,
+      };
+
+      const response = await fetch(
+        "https://pellakes-backend.prospafin.com/api/payments",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Include authorization if needed, e.g.,
+            // "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(paymentPayload),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Payment successful:", data);
+        // optionally show success notification here
+      } else {
+        console.error("Payment failed:", data);
+        // optionally show error notification here
+      }
+    } catch (error) {
+      console.error("Error making payment:", error);
+      // optionally show error notification here
+    }
+  };
+
 
 
 
@@ -199,6 +290,53 @@ export default function BigTable({ data }) {
             <button onClick={() => setNewRecordIsOpen(true)} className="bg-green-600 cursor-pointer hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition">
               + Record Input
             </button>
+
+            {openPayModal && (
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                {/* Overlay */}
+                <div
+                  className="absolute inset-0 bg-black/50"
+                  onClick={() => setOpenPayModal(false)}
+                ></div>
+
+                <div className="relative bg-white w-full max-w-md mx-4 rounded-2xl shadow-xl p-6 z-50 animate-fadeIn">
+
+                  {/* Header */}
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                      Make New Payment
+                    </h2>
+                    <button
+                      onClick={() => setOpenPayModal(false)}
+                      className="text-gray-500 hover:text-gray-700 text-xl"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="text-gray-600 mb-6">
+                    <MakePaymentModalContent paymentType={paymentTypes} formData={paymentFormData} onChange={handlePaymentChange} />
+                  </div>
+                  {/* Footer */}
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setOpenPayModal(false)}
+                      className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={(e) => doMakePayment(e)}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      Make Payment
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            )}
 
             {/* Modal */}
             {isNewRecordOpen && (
@@ -340,7 +478,7 @@ export default function BigTable({ data }) {
             Latest Payments
           </h2>
 
-          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition w-full sm:w-auto">
+          <button onClick={() => setOpenPayModal(true)} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition w-full sm:w-auto">
             Make Payment
           </button>
         </div>
@@ -500,6 +638,71 @@ function NewRecordModalContent({ wasteTypes, formData = {}, onChange }) {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+function MakePaymentModalContent({ paymentType, formData = {}, onChange }) {
+  return (
+    <div>
+      {/* Waste Details */}
+      <div className="mb-6">
+        <h3 className="text-sm font-semibold text-gray-600 mb-3">Payment Details</h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1" htmlFor="paymentType">Payment Type</label>
+            <select
+              id="paymentMethodId"
+              name="paymentMethodId"
+              value={formData.paymentMethodId}
+              onChange={onChange}
+              className="block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select a Payment Type</option>
+              {paymentType?.map((type) => (
+                <option key={type.id} value={type.id}>{type.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Amount</label>
+            <input
+              type="number"
+              name="amount"
+              value={formData.amount}
+              onChange={onChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm text-gray-600 mb-1">Date</label>
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={onChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm text-gray-600 mb-1">Notes / Reference</label>
+          <textarea
+            name="notes"
+            rows={3}
+            value={formData.notes}
+            onChange={onChange}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+
+
+      </div>
+
     </div>
   );
 }

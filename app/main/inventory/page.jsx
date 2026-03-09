@@ -1,3 +1,4 @@
+'use client'
 import {
     Menu,
     Bell,
@@ -10,6 +11,7 @@ import {
 import StatCard from "../../components/StatCard";
 import BigTable from "../../components/BigTable";
 import Charts from "../../components/Charts";
+import { useEffect, useState } from "react";
 
 const data = [
     {
@@ -49,6 +51,115 @@ const data = [
     },
 ];
 export default function Home() {
+    const [inventory, setInventory] = useState([])
+    const [totalTonnes, setTotalTonnes] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(false)
+
+    // useEffect(() => {
+    //     const controller = new AbortController();
+    //     const signal = controller.signal;
+
+    //     const fetchInventory = async () => {
+    //         try {
+    //             const res = await fetch(
+    //                 "https://pellakes-backend.prospafin.com/api/inventory",
+    //                 { signal }
+    //             );
+
+    //             if (!res.ok) {
+    //                 throw new Error(`HTTP error! status: ${res.status}`);
+    //             }
+    //             const data = await res.json();
+    //             // const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+    //             const sortedData = [...data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); setInventory(sortedData);
+
+    //             const result = calculateTotalTonnes(sortedData);
+
+    //             console.log("weight in kg", result.totalKg);
+    //             console.log("weight in tonnes", result.totalTonnes);
+
+    //             setTotalTonnes(result.totalTonnes);
+    //         } catch (err) {
+    //             if (err.name !== "AbortError") {
+    //                 setError(err.message);
+    //             }
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     fetchInventory();
+
+    //     // Cleanup if component unmounts
+    //     return () => controller.abort();
+    // }, []);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
+        const fetchInventory = async () => {
+            try {
+                const res = await fetch(
+                    "https://pellakes-backend.prospafin.com/api/inventory",
+                    { signal }
+                );
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                const data = await res.json();
+                console.log("Raw data from API:", data);
+
+                const sortedData = [...data].sort((a, b) =>
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                console.log("Sorted data:", sortedData);
+
+                setInventory(sortedData);
+
+                const result = calculateTotalTonnes(sortedData);
+
+                console.log("weight in kg", result.totalKg);
+                console.log("weight in tonnes", result.totalTonnes);
+
+                setTotalTonnes(result.totalTonnes);
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    setError(err.message);
+                    console.error("Error fetching inventory:", err);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInventory();
+
+        // Cleanup if component unmounts
+        return () => controller.abort();
+    }, []);
+
+    function calculateTotalTonnes(data) {
+        const totalKg = data.reduce((sum, item) => sum + item.weight, 0);
+        const totalTonnes = totalKg / 1000;
+
+        return {
+            totalKg,
+            totalTonnes
+        };
+    }
+
+    useEffect(() => {
+        if (inventory.length > 0) {
+            const result = calculateTotalTonnes(inventory);
+
+            console.log("weight in kg", result.totalKg);
+            console.log("weight in tonnes", result.totalTonnes);
+        }
+    }, [inventory]);
+
 
     return (
         <div>
@@ -77,13 +188,13 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
                     title="Total Stock"
-                    value="3.5 tonnes"
+                    value={totalTonnes.toFixed(2) + " tonnes"}
                     sub="This month"
                 />
                 <StatCard
                     title="Last Input"
-                    value="220 kg"
-                    sub="PET, HDPE"
+                    value={inventory[0]?.weight}
+                    sub={inventory[0]?.wasteTypeName}
                 />
                 <StatCard title="Pending QC" value="1" sub="All time" />
             </div>
@@ -123,10 +234,10 @@ export default function Home() {
                         </thead>
 
                         <tbody>
-                            {data.map((item, index) => (
+                            {inventory.map((item, index) => (
                                 <tr key={index} className="border-b last:border-none">
-                                    <td className="py-3">{item.collector}</td>
-                                    <td className="py-3">{item.type}</td>
+                                    <td className="py-3">{item.collectorName}</td>
+                                    <td className="py-3">{item.wasteTypeName}</td>
                                     <td className="py-3">{item.weight}</td>
                                     <td className="py-3">{item.date}</td>
                                     <td className="py-3 text-right">
