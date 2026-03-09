@@ -7,6 +7,8 @@ import { LayoutDashboard, Package, CreditCard, Settings, X, NotebookPen } from "
 
 
 export default function Sidebar({ open, setOpen }) {
+
+
   const pathname = usePathname();
   return (
     <>

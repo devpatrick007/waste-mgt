@@ -1,11 +1,12 @@
 'use client'
 import { Geist, Geist_Mono } from "next/font/google";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Menu,
     Bell,
     Search,
     ChevronDown,
+    Weight,
 } from "lucide-react";
 
 import Sidebar from "../components/Sidebar";
@@ -25,6 +26,12 @@ const geistMono = Geist_Mono({
 export default function MainLayout({ children }) {
     const [open, setOpen] = useState(false); // Sidebar state
     const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile modal state
+    const [weight, setWeight] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(false)
+    const [numberOfInputs, setNumberOfInputs] = useState(0)
+    const [weightInKg, setWeightInKg] = useState(0)
+    const [inventory, setInventory] = useState([])
 
     const pathname = usePathname();
 
@@ -42,7 +49,55 @@ export default function MainLayout({ children }) {
     const title = getPageTitle();
 
     const { data: session, status } = useSession();
-    console.log("Session in MainLayout:", session, "Status:", status); // Debugging log
+    console.log("Session in MainLayout:", session, "Status:", status);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
+        const fetchInventory = async () => {
+            setLoading(true);
+            try {
+                const res = await fetch(
+                    "https://pellakes-backend.prospafin.com/api/inventory",
+                    { signal }
+                );
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                const data = await res.json();
+                console.log("Raw data from API:", data);
+
+                const sortedData = [...data].sort((a, b) =>
+                    new Date(b.createdAt) - new Date(a.createdAt)
+                );
+                console.log("Sorted data in layout:", sortedData);
+                setNumberOfInputs(sortedData.length);
+                setInventory(sortedData)
+                // calculate total weight
+                const totalKg = sortedData.reduce((sum, item) => sum + Number(item.weight || 0), 0);
+                const totalTonnes = totalKg / 1000;
+
+                console.log("weight in kg", totalKg);
+                console.log("weight in tonnes", totalTonnes);
+
+                setWeightInKg(totalTonnes.toFixed(2));
+
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    setError(err.message);
+                    console.error("Error fetching inventory:", err);
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInventory();
+
+        return () => controller.abort();
+    }, []);
 
     return (
         <SessionProvider>
@@ -121,6 +176,9 @@ export default function MainLayout({ children }) {
                         isPOpen={isProfileOpen}
                         setIsPOpen={setIsProfileOpen}
                         user={session?.user}
+                        weight={weightInKg}
+                        numberOfInputs={numberOfInputs}
+                        inventory={inventory}
                     />
                 )}
 
@@ -131,7 +189,7 @@ export default function MainLayout({ children }) {
 
 
 // Profile Dropdown Modal
-function ProfileDropdown({ isPOpen, setIsPOpen, user, onLogout }) {
+function ProfileDropdown({ isPOpen, setIsPOpen, user, onLogout, weight, numberOfInputs, inventory }) {
     return (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             {/* Overlay */}
@@ -172,11 +230,11 @@ function ProfileDropdown({ isPOpen, setIsPOpen, user, onLogout }) {
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-4 text-center mt-6">
                     <div>
-                        <p className="text-2xl font-bold text-gray-900">128</p>
+                        <p className="text-2xl font-bold text-gray-900">{numberOfInputs}</p>
                         <p className="text-sm text-gray-500">Total Inputs</p>
                     </div>
                     <div>
-                        <p className="text-2xl font-bold text-gray-900">412 kg</p>
+                        <p className="text-2xl font-bold text-gray-900">{weight}</p>
                         <p className="text-sm text-gray-500">Total Weight</p>
                     </div>
                     <div>
@@ -201,20 +259,23 @@ function ProfileDropdown({ isPOpen, setIsPOpen, user, onLogout }) {
                         Recent Inputs
                     </h3>
 
-                    {[
+                    {/* {[
                         "12.5 kg - Feb 11, 2025",
                         "12.5 kg - Feb 11, 2025",
                         "12.5 kg - Feb 11, 2025",
-                    ].map((item, idx) => (
+                    ] */}
+
+
+                    {inventory?.slice(0, 3).map((item, idx) => (
                         <div
                             key={idx}
                             className="flex justify-between items-center mb-4 last:mb-0"
                         >
                             <div>
                                 <p className="text-sm font-medium text-gray-800">
-                                    PET Plastics
+                                    {item.collectorName}
                                 </p>
-                                <p className="text-xs text-gray-500">{item}</p>
+                                <p className="text-xs text-gray-500">{item.wasteTypeName} - {item.date}</p>
                             </div>
 
                             <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-600 rounded-full">

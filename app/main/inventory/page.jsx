@@ -56,7 +56,7 @@ export default function Home() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(false)
 
-    // useEffect(() => {
+
     //     const controller = new AbortController();
     //     const signal = controller.signal;
 
@@ -123,7 +123,7 @@ export default function Home() {
 
                 console.log("weight in kg", result.totalKg);
                 console.log("weight in tonnes", result.totalTonnes);
-
+                setWeight(result.totalTonnes)
                 setTotalTonnes(result.totalTonnes);
             } catch (err) {
                 if (err.name !== "AbortError") {
