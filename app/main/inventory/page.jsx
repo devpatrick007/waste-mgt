@@ -193,8 +193,7 @@ export default function Home() {
                 />
                 <StatCard
                     title="Last Input"
-                    value={inventory[0]?.weight}
-                    sub={inventory[0]?.wasteTypeName}
+                    value={inventory[0] ? (inventory[0].weight / 1000).toFixed(2) + " tonnes" : "0 tonnes"} sub={inventory[0]?.wasteTypeName}
                 />
                 <StatCard title="Pending QC" value="1" sub="All time" />
             </div>
