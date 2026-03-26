@@ -17,11 +17,21 @@ import BigTable from "../../components/BigTable";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+function calculateTotalTonnes(data) {
+    const totalKg = data.reduce((sum, item) => sum + item.weight, 0);
+    return { totalKg, totalTonnes: totalKg / 1000 };
+}
+
+function getTotalAmount(payments) {
+    return payments.reduce((total, item) => total + Number(item.amount), 0);
+}
+
 
 export default function Home() {
     const [inventory, setInventory] = useState([]);
     const [totalTonnes, setTotalTonnes] = useState(0);
-    const [totalAmount, setTotalAmount] = useState(0)
+    const [totalKg, setTotalKg] = useState(0);
+    const [totalAmount, setTotalAmount] = useState(0);
 
     const [loading, setLoading] = useState(false);
     const { data: session, status } = useSession();
@@ -58,31 +68,27 @@ export default function Home() {
         const signal = controller.signal;
 
         const fetchInventory = async () => {
+            setLoading(true);
             try {
                 const res = await fetch(
                     "https://pellakes-backend.prospafin.com/api/inventory",
                     { signal }
                 );
 
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                const data = await res.json();
-                console.log("Raw data from API:", data);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
+                const data = await res.json();
                 const sortedData = [...data].sort((a, b) =>
                     new Date(b.createdAt) - new Date(a.createdAt)
                 );
-                console.log("Sorted data:", sortedData);
 
                 setInventory(sortedData);
 
-                const result = calculateTotalTonnes(sortedData);
-
-                console.log("weight in kg", result.totalKg);
-                console.log("weight in tonnes", result.totalTonnes);
-
-                setTotalTonnes(result.totalTonnes);
+                const { totalKg, totalTonnes } = calculateTotalTonnes(sortedData);
+                console.log("weight in kg", totalKg);
+                console.log("weight in tonnes", totalTonnes);
+                setTotalKg(totalKg);
+                setTotalTonnes(totalTonnes);
             } catch (err) {
                 if (err.name !== "AbortError") {
                     setError(err.message);
@@ -98,25 +104,6 @@ export default function Home() {
         // Cleanup if component unmounts
         return () => controller.abort();
     }, []);
-
-    function calculateTotalTonnes(data) {
-        const totalKg = data.reduce((sum, item) => sum + item.weight, 0);
-        const totalTonnes = totalKg / 1000;
-
-        return {
-            totalKg,
-            totalTonnes
-        };
-    }
-
-    useEffect(() => {
-        if (inventory.length > 0) {
-            const result = calculateTotalTonnes(inventory);
-
-            console.log("weight in kg", result.totalKg);
-            console.log("weight in tonnes", result.totalTonnes);
-        }
-    }, [inventory]);
 
 
     useEffect(() => {
@@ -162,10 +149,6 @@ export default function Home() {
         // Cleanup if component unmounts
         return () => controller.abort();
     }, []);
-
-    function getTotalAmount(payments) {
-        return payments.reduce((total, item) => total + Number(item.amount), 0);
-    }
 
 
     // if (status === "loading") return <p>Loading...</p>;
@@ -226,12 +209,14 @@ export default function Home() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
                     title="Plastics Received"
-                    value={totalTonnes.toFixed(2) + " tonnes"}
+                    value={totalTonnes.toFixed(2) + " t"}
+                    valueNote={totalKg.toLocaleString() + " kg"}
                     sub="This month"
                 />
                 <StatCard
                     title="Current Inventory"
-                    value={totalTonnes.toFixed(2) + " tonnes"}
+                    value={totalTonnes.toFixed(2) + " t"}
+                    valueNote={totalKg.toLocaleString() + " kg"}
                     sub="PET, HDPE"
                 />
                 <StatCard title="Total Payments" value={"GHC" + totalAmount} sub="All time" />

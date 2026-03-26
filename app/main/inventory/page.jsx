@@ -1,130 +1,47 @@
 'use client'
-import {
-    Menu,
-    Bell,
-    Search,
-    Upload,
-    Download,
-    ChevronDown,
-} from "lucide-react";
-
+import { Upload, Download } from "lucide-react";
 import StatCard from "../../components/StatCard";
-import BigTable from "../../components/BigTable";
 import Charts from "../../components/Charts";
 import { useEffect, useState } from "react";
 
-const data = [
-    {
-        collector: "Kwame",
-        type: "PET",
-        weight: 420,
-        date: "2025-09-11",
-        status: "Checked",
-    },
-    {
-        collector: "Ama",
-        type: "Sachet",
-        weight: 120,
-        date: "2025-09-11",
-        status: "Pending",
-    },
-    {
-        collector: "Yaw",
-        type: "HDPE",
-        weight: 80,
-        date: "2025-09-11",
-        status: "Checked",
-    },
-    {
-        collector: "Akosua",
-        type: "PET Flakes",
-        weight: 220,
-        date: "2025-09-11",
-        status: "Checked",
-    },
-    {
-        collector: "Millie",
-        type: "Sachet",
-        weight: 150,
-        date: "2025-09-11",
-        status: "Checked",
-    },
-];
+function calculateTotalTonnes(data) {
+    const totalKg = data.reduce((sum, item) => sum + item.weight, 0);
+    return { totalKg, totalTonnes: totalKg / 1000 };
+}
+
 export default function Home() {
-    const [inventory, setInventory] = useState([])
-    const [totalTonnes, setTotalTonnes] = useState(0)
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState(false)
-
-
-    //     const controller = new AbortController();
-    //     const signal = controller.signal;
-
-    //     const fetchInventory = async () => {
-    //         try {
-    //             const res = await fetch(
-    //                 "https://pellakes-backend.prospafin.com/api/inventory",
-    //                 { signal }
-    //             );
-
-    //             if (!res.ok) {
-    //                 throw new Error(`HTTP error! status: ${res.status}`);
-    //             }
-    //             const data = await res.json();
-    //             // const sortedData = data.sort((a, b) => new Date(b.date) - new Date(a.date));
-    //             const sortedData = [...data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); setInventory(sortedData);
-
-    //             const result = calculateTotalTonnes(sortedData);
-
-    //             console.log("weight in kg", result.totalKg);
-    //             console.log("weight in tonnes", result.totalTonnes);
-
-    //             setTotalTonnes(result.totalTonnes);
-    //         } catch (err) {
-    //             if (err.name !== "AbortError") {
-    //                 setError(err.message);
-    //             }
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     fetchInventory();
-
-    //     // Cleanup if component unmounts
-    //     return () => controller.abort();
-    // }, []);
+    const [inventory, setInventory] = useState([]);
+    const [totalTonnes, setTotalTonnes] = useState(0);
+    const [totalKg, setTotalKg] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const controller = new AbortController();
-        const signal = controller.signal;
 
         const fetchInventory = async () => {
+            setLoading(true);
             try {
                 const res = await fetch(
                     "https://pellakes-backend.prospafin.com/api/inventory",
-                    { signal }
+                    { signal: controller.signal }
                 );
 
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
                 const data = await res.json();
-                console.log("Raw data from API:", data);
 
-                const sortedData = [...data].sort((a, b) =>
-                    new Date(b.createdAt) - new Date(a.createdAt)
+                const sortedData = [...data].sort(
+                    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
                 );
-                console.log("Sorted data:", sortedData);
 
                 setInventory(sortedData);
 
-                const result = calculateTotalTonnes(sortedData);
-
-                console.log("weight in kg", result.totalKg);
-                console.log("weight in tonnes", result.totalTonnes);
-                setWeight(result.totalTonnes)
-                setTotalTonnes(result.totalTonnes);
+                const { totalKg, totalTonnes } = calculateTotalTonnes(sortedData);
+                console.log("weight in kg", totalKg);
+                console.log("weight in tonnes", totalTonnes);
+                setTotalKg(totalKg);
+                setTotalTonnes(totalTonnes);
             } catch (err) {
                 if (err.name !== "AbortError") {
                     setError(err.message);
@@ -136,30 +53,8 @@ export default function Home() {
         };
 
         fetchInventory();
-
-        // Cleanup if component unmounts
         return () => controller.abort();
     }, []);
-
-    function calculateTotalTonnes(data) {
-        const totalKg = data.reduce((sum, item) => sum + item.weight, 0);
-        const totalTonnes = totalKg / 1000;
-
-        return {
-            totalKg,
-            totalTonnes
-        };
-    }
-
-    useEffect(() => {
-        if (inventory.length > 0) {
-            const result = calculateTotalTonnes(inventory);
-
-            console.log("weight in kg", result.totalKg);
-            console.log("weight in tonnes", result.totalTonnes);
-        }
-    }, [inventory]);
-
 
     return (
         <div>
@@ -185,27 +80,36 @@ export default function Home() {
                     </div>
                 </div>
             </div>
+
+            {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard
                     title="Total Stock"
-                    value={totalTonnes.toFixed(2) + " tonnes"}
-                    sub="This month"
+                    value={totalTonnes.toFixed(2) + " t"}
+                    valueNote={totalKg.toLocaleString() + " kg"}
+                    sub="Total collected"
                 />
                 <StatCard
                     title="Last Input"
-                    value={inventory[0] ? (inventory[0].weight / 1000).toFixed(2) + " tonnes" : "0 tonnes"} sub={inventory[0]?.wasteTypeName}
+                    value={
+                        inventory[0]
+                            ? (inventory[0].weight / 1000).toFixed(2) + " t"
+                            : "0 t"
+                    }
+                    valueNote={
+                        inventory[0]
+                            ? inventory[0].weight.toLocaleString() + " kg"
+                            : undefined
+                    }
+                    sub={inventory[0]?.wasteTypeName ?? "—"}
                 />
                 <StatCard title="Pending QC" value="1" sub="All time" />
             </div>
 
-            {/* <div className="min-h-screen bg-gray-100 p-6"> */}
+            {/* Inventory Table */}
             <div className="w-full mx-auto bg-white rounded-lg shadow-sm p-6">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-gray-800">
-                        Inventory Log
-                    </h2>
-
+                    <h2 className="text-lg font-semibold text-gray-800">Inventory Log</h2>
                     <div className="flex gap-2">
                         <button className="px-4 py-2 text-sm border rounded-md bg-white hover:bg-gray-50">
                             This Week
@@ -219,46 +123,66 @@ export default function Home() {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-gray-600">
-                        <thead className="text-gray-700 border-b">
-                            <tr>
-                                <th className="py-3 font-medium">Collector</th>
-                                <th className="py-3 font-medium">Type</th>
-                                <th className="py-3 font-medium">Weight (kg)</th>
-                                <th className="py-3 font-medium">Date</th>
-                                <th className="py-3 font-medium text-right">Status</th>
-                            </tr>
-                        </thead>
+                {error && (
+                    <p className="text-red-500 text-sm mb-4">⚠️ {error}</p>
+                )}
 
-                        <tbody>
-                            {inventory.map((item, index) => (
-                                <tr key={index} className="border-b last:border-none">
-                                    <td className="py-3">{item.collectorName}</td>
-                                    <td className="py-3">{item.wasteTypeName}</td>
-                                    <td className="py-3">{item.weight}</td>
-                                    <td className="py-3">{item.date}</td>
-                                    <td className="py-3 text-right">
-                                        <span
-                                            className={`px-4 py-1 text-xs font-medium rounded-full ${item.status === "Checked"
-                                                ? "bg-green-100 text-green-700"
-                                                : "bg-yellow-100 text-yellow-700"
-                                                }`}
-                                        >
-                                            {item.status}
-                                        </span>
-                                    </td>
+                {loading ? (
+                    <p className="text-gray-400 text-sm py-6 text-center">Loading inventory...</p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-gray-600">
+                            <thead className="text-gray-700 border-b">
+                                <tr>
+                                    <th className="py-3 font-medium">Collector</th>
+                                    <th className="py-3 font-medium">Type</th>
+                                    <th className="py-3 font-medium">Weight</th>
+                                    <th className="py-3 font-medium">Date</th>
+                                    <th className="py-3 font-medium text-right">Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {inventory.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={5} className="py-6 text-center text-gray-400">
+                                            No inventory records found.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    inventory.map((item, index) => (
+                                        <tr key={index} className="border-b last:border-none">
+                                            <td className="py-3">{item.collectorName}</td>
+                                            <td className="py-3">{item.wasteTypeName}</td>
+                                            <td className="py-3">
+                                                <span className="font-medium text-gray-800">
+                                                    {item.weight.toLocaleString()} kg
+                                                </span>
+                                                <span className="ml-2 text-xs text-gray-400">
+                                                    / {(item.weight / 1000).toFixed(3)} t
+                                                </span>
+                                            </td>
+                                            <td className="py-3">{item.date}</td>
+                                            <td className="py-3 text-right">
+                                                <span
+                                                    className={`px-4 py-1 text-xs font-medium rounded-full ${
+                                                        item.status === "Checked"
+                                                            ? "bg-green-100 text-green-700"
+                                                            : "bg-yellow-100 text-yellow-700"
+                                                    }`}
+                                                >
+                                                    {item.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
-            {/* </div> */}
 
-            <Charts title={`Stock Trend`} secondTitle={`By Type`} />
-
+            <Charts title="Stock Trend" secondTitle="By Type" />
         </div>
     );
 }
