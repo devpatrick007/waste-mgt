@@ -12,6 +12,7 @@ export default function LoginPage() {
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
 
+
     // const handleSubmit = async (e) => {
     //     e.preventDefault()
     //     setLoading(true)
@@ -25,13 +26,18 @@ export default function LoginPage() {
 
     //     setLoading(false)
 
-    //     if (res?.error) {
-    //         setError("Invalid email or password")
-    //         return
-    //     }
+    //     console.log("signIn result:", res)
 
-    //     router.push("/") // redirect after login
+    //     if (res?.ok) {
+    //         // router.replace("/")
+    //         // router.refresh()
+    //         window.location.href = "/"
+    //         //alert("Login successful! Redirecting to dashboard...")
+    //     } else {
+    //         setError("Invalid email or password")
+    //     }
     // }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
@@ -41,17 +47,14 @@ export default function LoginPage() {
             email,
             password,
             redirect: false,
+            callbackUrl: "/",
         })
 
         setLoading(false)
 
-        console.log("signIn result:", res)
-
         if (res?.ok) {
-            // router.replace("/")
-            // router.refresh()
-            window.location.href = "/"
-            //alert("Login successful! Redirecting to dashboard...")
+            router.replace(res.url)
+            router.refresh()
         } else {
             setError("Invalid email or password")
         }

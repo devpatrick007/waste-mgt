@@ -65,10 +65,14 @@ export const authOptions = {
     },
 
     pages: {
-        signIn: "/dashboard",
+        signIn: "/login",
     },
 }
 
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
+
+// pages: {
+//     signIn: "/login", // or remove this entirely
+// }

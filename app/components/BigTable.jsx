@@ -23,6 +23,7 @@ export default function BigTable({ data }) {
   const [paymentTypes, setPaymentTypes] = useState([]);
   const [paymentList, setPaymentList] = useState([])
   const [openPayModal, setOpenPayModal] = useState(false);
+  const [collectors, setCollectors] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -76,7 +77,6 @@ export default function BigTable({ data }) {
 
 
   const [formData, setFormData] = useState({
-    collectorName: "",   // start empty
     collectorId: "",     // start empty or auto-fill if needed
     wasteType: "",
     weight: "",
@@ -84,7 +84,6 @@ export default function BigTable({ data }) {
     notes: ""
   });
 
-  formData.collectorPhoneNumber = "0244000000"; // default or auto-fill if needed
   formData.collectionPhoto = "https://via.placeholder.com/150"; // default image URL
 
 
@@ -102,8 +101,7 @@ export default function BigTable({ data }) {
     try {
       // Convert numeric fields before sending
       const payload = {
-        collectorName: formData.collectorName,
-        collectorId: "ABCDEF",
+        collectorId: formData.collectorId,
         wasteTypeId: Number(formData.wasteType), // convert string to number
         weight: parseFloat(formData.weight),     // convert string to number
         date: formData.date,
@@ -131,7 +129,6 @@ export default function BigTable({ data }) {
 
       // Reset form
       setFormData({
-        collectorName: "",
         collectorId: "",
         wasteType: "",
         weight: "",
@@ -248,6 +245,45 @@ export default function BigTable({ data }) {
   }, []);
 
 
+
+  useEffect(() => {
+    const fetchCollectors = async () => {
+      try {
+        const res = await fetch("https://pellakes-backend.prospafin.com/api/collectors");
+        const data = await res.json();
+        setCollectors(data); // assuming API returns an array of collectors
+      } catch (err) {
+        console.error("Failed to fetch collectors:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCollectors();
+  }, []);
+
+
+  // const handleCollectorChange = (e) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     collectorId: e.target.value // this will be the collector's ID
+  //   }));
+  // };
+
+  const handleCollectorChange = (e) => {
+    const selectedId = e.target.value; // the collector's ID
+    const selectedCollector = collectors.find(
+      (collector) => collector.id === selectedId
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      collectorId: selectedId,
+      collectorPhoneNumber: selectedCollector?.phoneNumber || "", // fill phone or empty
+    }));
+  };
+
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
       <div className="lg:col-span-2 bg-white rounded-xl shadow-sm">
@@ -336,7 +372,7 @@ export default function BigTable({ data }) {
 
                   {/* Body */}
                   <div className="text-gray-600 mb-6">
-                    <NewRecordModalContent formData={formData}
+                    <NewRecordModalContent formData={formData} collectors={collectors} cOnchange={handleCollectorChange}
                       wasteTypes={wasteTypes} onChange={handleChange}
                     />
                   </div>
@@ -527,34 +563,28 @@ export default function BigTable({ data }) {
 }
 
 
-function NewRecordModalContent({ wasteTypes, formData = {}, onChange }) {
+function NewRecordModalContent({ wasteTypes, collectors, formData = {}, cOnchange, onChange }) {
+
   return (
     <div>
       {/* Collector Details */}
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-gray-600 mb-3">Collector Details</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Collector Name</label>
-            <input
-              type="text"
-              name="collectorName"
-              value={formData.collectorName}
-              onChange={onChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Collector ID</label>
-            <input
-              type="text"
+            <select
               name="collectorId"
-              value={formData.collectorId}
-              onChange={onChange}
-              disabled
-              className="w-full bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500"
-            />
+              value={formData.collectorId || ""}
+              onChange={cOnchange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">Select a collector</option>
+              {collectors?.map((collector) => (
+                <option key={collector.id} value={collector.id}>
+                  {collector.firstName} {collector.lastName}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

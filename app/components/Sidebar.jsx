@@ -36,6 +36,9 @@ export default function Sidebar({ open, setOpen }) {
         <nav className="space-y-4">
           <Link href="/main/dashboard"><NavItem icon={<LayoutDashboard size={18} />} label="Dashboard" active={pathname === "/main/dashboard"} onClick={() => setOpen(false)}
           /></Link>
+          <Link href="/main/collector"><NavItem icon={<Package size={18} />} label="Add Collector" active={pathname === "/main/collector"} onClick={() => setOpen(false)} /></Link>
+          <Link href="/main/viewcollectors"><NavItem icon={<Package size={18} />} label="View Collectors" active={pathname === "/main/viewcollectors"} onClick={() => setOpen(false)} /></Link>
+
           <Link href="/main/inventory"><NavItem icon={<Package size={18} />} label="Inventory" active={pathname === "/main/inventory"} onClick={() => setOpen(false)} /></Link>
           <Link href="/main/payments"><NavItem icon={<CreditCard size={18} />} label="Payments" active={pathname === "/main/payments"} onClick={() => setOpen(false)} /></Link>
           <Link href="/main/reports"><NavItem icon={<NotebookPen size={18} />} label="Reports" active={pathname === "/main/reports"} onClick={() => setOpen(false)} /></Link>
