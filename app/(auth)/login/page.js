@@ -38,6 +38,28 @@ export default function LoginPage() {
     //     }
     // }
 
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault()
+    //     setLoading(true)
+    //     setError("")
+
+    //     const res = await signIn("credentials", {
+    //         email,
+    //         password,
+    //         redirect: false,
+    //         callbackUrl: "/",
+    //     })
+
+    //     setLoading(false)
+
+    //     if (res?.ok) {
+    //         router.replace(res.url)
+    //         router.refresh()
+    //     } else {
+    //         setError("Invalid email or password")
+    //     }
+    // }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
@@ -47,14 +69,12 @@ export default function LoginPage() {
             email,
             password,
             redirect: false,
-            callbackUrl: "/",
         })
 
         setLoading(false)
 
         if (res?.ok) {
-            router.replace(res.url)
-            router.refresh()
+            window.location.href = "/"   // ✅ force hard redirect
         } else {
             setError("Invalid email or password")
         }
